@@ -1104,3 +1104,47 @@ public class PlayVideoActivity extends YouTubeBaseActivity implements YouTubePla
 > Lưu ý: ở máy ảo để có thể sử dụng các dịch vụ của Google (ví dụ ở đây là YoutubePlayerView và khởi tạo kết nối API Youtube Data V3), thì máy ảo đó cần cài đặt Google Play Service
 
 ___
+
+__XỬ LÝ VÀI THAO TÁC VỚI GIAO DIỆN YOUTUBE PLAYER VIEW__
+
+- giả sử khi chuyển qua Activity chứa YoutubePlayerView, ta đã thiết lập view tự động play video, nhưng ta muốn Player tự động xoay ngang để khung video được hiển thị lớn nhất
+- để set full screen cho YoutubePlayerView, thì sau khi khởi tạo thành công (``onInitializationSuccess``) và load được ``videoId`` ta gọi method ``setFullscreen(boolean)``
+```java
+    @Override
+    public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
+        youTubePlayer.loadVideo(idVideo);
+        youTubePlayer.setFullscreen(true);
+    }
+```
+
+- với việc gọi method ``setFullscreen()`` như trên vẫn có thể xảy ra tình trạng giật lag khi chuyển màn hình, và khi di chuyển qua lại giữa 2 màn hình thì video sẽ load lại video từ đầu, để giải quyết ta sẽ can thiệp vào thuộc tính của 2 Activity trong __AndroidManifest__
+- mở file AndroidManifest.xml ta thêm thuộc tính ``android:screenOrientation="landscape"`` cho thẻ __PlayVideoActivity__
+```xml
+        <activity
+            android:name=".PlayVideoActivity"
+            android:exported="false"
+            android:screenOrientation="landscape">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+```
+- ở thẻ __MainActivity__ ta thêm thuộc tính sau ``android:configChanges="orientation|screenSize"`` để giải quyết tình trạng load lại từ đầu video
+```xml
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:configChanges="orientation|screenSize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+```
+
+___
